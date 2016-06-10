@@ -19,6 +19,8 @@ trait Disposable[-A] {
     * wrapper will directly call onDispose on the disposable object.  It does not call the dispose
     * method because the dispose method will silently catch non-fatal exceptions.  Callers may
     * choose this method instead of calling dispose to get access to any thrown exceptions.
+    * Instances of the type-class may choose to return the underlying Closeable object instead
+    * of a wrapper.
     *
     * @param a The disposable object
     * @return The Closeable wrapper
@@ -27,10 +29,25 @@ trait Disposable[-A] {
     override def close(): Unit = onDispose(a)
   }
 
+  /** Create a wrapper for the disposable object that implements AutoCloseable.  Calling close on the
+    * wrapper will directly call onDispose on the disposable object.  It does not call the dispose
+    * method because the dispose method will silently catch non-fatal exceptions.  Callers may
+    * choose this method instead of calling dispose to get access to any thrown exceptions.
+    * Instances of the type-class may choose to return the underlying AutoCloseable object instead
+    * of a wrapper.
+    *
+    * @param a The disposable object
+    * @return The Closeable wrapper
+    */
+  def asAutoCloseable(a: A): AutoCloseable = new AutoCloseable {
+    override def close(): Unit = onDispose(a)
+  }
+
   /** Dispose the disposable object.  Any non-fatal exceptions thrown during the call are caught
     * and silently ignored.
     *
     * @param a The disposable object
     */
+  @inline
   final def dispose(a: A): Unit = try onDispose(a) catch { case e: Exception => }
 }

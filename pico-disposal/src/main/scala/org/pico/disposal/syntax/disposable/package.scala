@@ -12,7 +12,8 @@ package object disposable {
       *
       * @param ev Evidence that A is disposable.
       */
-    def dispose()(implicit ev: Disposable[A]): Unit = ev.dispose(self)
+    @inline
+    final def dispose()(implicit ev: Disposable[A]): Unit = ev.dispose(self)
 
     /** Create a wrapper for the disposable object that implements Closeable.  Calling close on the
       * wrapper will directly call onDispose on the disposable object.  It does not call the dispose
@@ -22,7 +23,8 @@ package object disposable {
       * @param ev Evidence that A is disposable.
       * @return The Closeable wrapper
       */
-    def asCloseable(implicit ev: Disposable[A]): Closeable = ev.asCloseable(self)
+    @inline
+    final def asCloseable(implicit ev: Disposable[A]): Closeable = ev.asCloseable(self)
 
     /** Compose two disposable objects into a single Closeable object that when closed will dispose
       * both disposable objects.
@@ -33,7 +35,8 @@ package object disposable {
       * @tparam B The type of the disposable object to compose with
       * @return The closeable object that will dispose of both disposable objects when closed
       */
-    def ++[B](that: B)(implicit evA: Disposable[A], evB: Disposable[B]): Closeable = {
+    @inline
+    final def ++[B](that: B)(implicit evA: Disposable[A], evB: Disposable[B]): Closeable = {
       val disposableRefThat = new AtomicReference[B](that)
       val disposableRefThis = new AtomicReference[A](self)
 
@@ -60,6 +63,7 @@ package object disposable {
       * @tparam B The return type of the callback
       * @return The return type of the callback
       */
+    @inline
     final def foreach[B](f: A => B)(implicit ev: Disposable[A]): B = {
       try {
         f(self)

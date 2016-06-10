@@ -8,5 +8,8 @@ package object autoCloseable {
     */
   implicit val disposableAutoCloseable_YYKh2cf = new Disposable[AutoCloseable] {
     protected override def onDispose(a: AutoCloseable): Unit = a.close()
+
+    @inline
+    final override def asAutoCloseable(a: AutoCloseable): AutoCloseable = a
   }
 }

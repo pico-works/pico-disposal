@@ -7,5 +7,6 @@ import java.io.Closeable
   * It would be used in place of null.  See null object pattern.
   */
 object Closed extends Closeable {
+  @inline
   final override def close(): Unit = ()
 }

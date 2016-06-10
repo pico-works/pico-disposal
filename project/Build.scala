@@ -31,7 +31,7 @@ object Build extends sbt.Build {
       .libs(pico_atomic)
       .testLibs(specs2_core)
 
-  lazy val all = Project(id = "all", base = file("."))
+  lazy val all = Project(id = "pico-disposal-project", base = file("."))
       .notPublished
       .aggregate(`pico-disposal`, `pico-fake`)
 }

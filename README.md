@@ -171,7 +171,7 @@ import org.pico.disposal._
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
 import java.io._
-for (disposer <- new Disposer) {
+for (disposer <- Disposer()) {
   val file1 = disposer.disposes(new FileOutputStream("file1.txt"))
   val file2 = disposer.disposes(new FileOutputStream("file2.txt"))
   // Do work

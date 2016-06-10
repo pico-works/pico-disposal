@@ -13,7 +13,7 @@ Add this to your SBT project:
 ```
 resolvers += "dl-john-ky-releases" at "http://dl.john-ky.io/maven/releases"
 
-libraryDependencies += "org.pico" %%  "pico-disposal" % "0.0.1-2"
+libraryDependencies += "org.pico" %%  "pico-disposal" % "0.3.0-5"
 ```
 
 ## Using the dispose method instead of close methods to close resources
@@ -79,8 +79,10 @@ Which will then allow you to uniformly use the `dispose` method no matter the re
     shutdownable.dispose()
 
 ### Composition of disposable objects
-`Disposable` objects can be pair-wise composed into a larger `Closeable` object
-that will `dispose` of each of the original objects in reverse order when closed.
+`Disposable` objects can be pair-wise composed into a larger `Closeable` object that will `dispose`
+of each of the original objects in reverse order when closed.  The `:+:` operator was chosen
+for this purposes because it is right associative and so will close composed disposables from right
+to left.
 
 ```
 import org.pico.disposal._
@@ -89,12 +91,12 @@ import org.pico.disposal.std.autoCloseable._
 import java.io._
 val file1 = new FileOutputStream("file1.txt")
 val file2 = new FileOutputStream("file2.txt")
-val closeable = file1 ++ file2
+val closeable = file1 :+: file2
 closeable.close() // Closes both files
 ```
 
-Naturally, more than two disposable objects can be composed in this way with
-repeated application of the `++` operator.
+Naturally, more than two disposable objects can be composed in this way with repeated application
+of the `:+:` operator.
 
 ### For syntax for automatic disposal
 In many situations, the code calls for opening a resources, doing some work and then

@@ -33,7 +33,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def disposes[D: Disposable](disposable: D): D = {
-    disposables.update(_ ++ disposable.asCloseable)
+    disposables.update(_ :+: disposable.asCloseable)
     disposable
   }
 

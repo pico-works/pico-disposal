@@ -3,7 +3,7 @@ package org.pico.disposal.syntax
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
-import org.pico.disposal.Disposable
+import org.pico.disposal.{Disposable, PoisonedCloseable}
 
 package object disposable {
   implicit class DisposableOps_YYKh2cf[A](val self: A) extends AnyVal {
@@ -26,6 +26,9 @@ package object disposable {
     @inline
     final def asCloseable(implicit ev: Disposable[A]): Closeable = ev.asCloseable(self)
 
+    @inline
+    final def disposablePoisoned(implicit ev: Disposable[A]): Boolean = ev.disposablePoisoned(self)
+
     /** Compose two disposable objects into a single Closeable object that when closed will dispose
       * both disposable objects.
       *
@@ -35,15 +38,20 @@ package object disposable {
       * @tparam B The type of the disposable object to compose with
       * @return The closeable object that will dispose of both disposable objects when closed
       */
-    @inline
-    final def ++[B](that: B)(implicit evA: Disposable[A], evB: Disposable[B]): Closeable = {
-      val disposableRefThat = new AtomicReference[B](that)
-      val disposableRefThis = new AtomicReference[A](self)
+    def :+:[B](that: B)(implicit evA: Disposable[A], evB: Disposable[B]): Closeable = {
+      if (self.disposablePoisoned || that.disposablePoisoned) {
+        self.dispose()
+        that.dispose()
+        PoisonedCloseable
+      } else {
+        val disposableRefThat = new AtomicReference[B](that)
+        val disposableRefThis = new AtomicReference[A](self)
 
-      new Closeable {
-        override def close(): Unit = {
-          disposableRefThat.getAndSet(null.asInstanceOf[B]).dispose()
-          disposableRefThis.getAndSet(null.asInstanceOf[A]).dispose()
+        new Closeable {
+          override def close(): Unit = {
+            disposableRefThis.getAndSet(null.asInstanceOf[A]).dispose()
+            disposableRefThat.getAndSet(null.asInstanceOf[B]).dispose()
+          }
         }
       }
     }

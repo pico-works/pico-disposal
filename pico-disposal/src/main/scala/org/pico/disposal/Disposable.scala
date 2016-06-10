@@ -15,6 +15,11 @@ trait Disposable[-A] {
     */
   protected def onDispose(a: A): Unit
 
+  /** If this returns true, the Disposable object is poisoned.  Attempts to compose it with another
+    * Disposable object with the ++ operator will cause the other object to be disposed.
+    */
+  def disposablePoisoned(a: A): Boolean = false
+
   /** Create a wrapper for the disposable object that implements Closeable.  Calling close on the
     * wrapper will directly call onDispose on the disposable object.  It does not call the dispose
     * method because the dispose method will silently catch non-fatal exceptions.  Callers may

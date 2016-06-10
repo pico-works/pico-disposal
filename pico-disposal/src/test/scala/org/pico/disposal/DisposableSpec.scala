@@ -12,7 +12,7 @@ class DisposableSpec extends Specification {
         val disposable1 = OnClose(value += 1)
         val disposable2 = OnClose(value *= 10)
 
-        (disposable1 ++ disposable2).dispose()
+        (disposable1 :+: disposable2).dispose()
 
         value ==== 11
       }

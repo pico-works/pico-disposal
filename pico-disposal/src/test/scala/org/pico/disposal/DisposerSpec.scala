@@ -8,7 +8,7 @@ class DisposerSpec extends Specification {
   "Disposer" should {
     "dispose in reverse order" >> {
       var value = 1
-      val disposer = new Disposer()
+      val disposer = Disposer()
 
       disposer.disposes(OnClose(value += 1))
       disposer.disposes(OnClose(value *= 10))

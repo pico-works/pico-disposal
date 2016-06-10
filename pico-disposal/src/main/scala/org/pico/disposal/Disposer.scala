@@ -13,7 +13,7 @@ import org.pico.disposal.syntax.disposable._
   * even after it is closed.  Objects registered after a call to close may be disposed by calling
   * close again.
   */
-class Disposer extends Closeable {
+trait Disposer extends Closeable {
   private val disposables = new AtomicReference[Closeable](Closed)
 
   /** Register a disposable object for disposable by the disposer.
@@ -54,4 +54,8 @@ class Disposer extends Closeable {
   /** Dispose all registered disposable objects.
     */
   final override def close(): Unit = disposables.getAndSet(Closed).dispose()
+}
+
+object Disposer {
+  def apply(): Disposer = new Disposer {}
 }

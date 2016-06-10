@@ -1,6 +1,7 @@
 package org.pico.disposal.std
 
-import org.pico.disposal.{Disposable, PoisonedCloseable}
+import org.pico.atomic.EmptyReferent
+import org.pico.disposal.{Closed, Disposable, PoisonedCloseable}
 
 package object autoCloseable {
   /** Evidence that all AutoCloseable objects are disposable.  Disposal is implemented as calling
@@ -15,4 +16,6 @@ package object autoCloseable {
     @inline
     final override def asAutoCloseable(a: AutoCloseable): AutoCloseable = a
   }
+
+  implicit val emptyReferent_AutoCloseable_po9XBKr = EmptyReferent.define[AutoCloseable](Closed)
 }

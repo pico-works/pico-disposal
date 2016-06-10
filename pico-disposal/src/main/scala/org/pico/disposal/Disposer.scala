@@ -3,6 +3,7 @@ package org.pico.disposal
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
+import org.pico.atomic.EmptyReferent
 import org.pico.atomic.syntax.std.atomicReference._
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
@@ -27,7 +28,7 @@ trait Disposer extends Closeable {
 
   /** Register a disposable object for disposable by the disposer on close.
     *
-    * @param disposable The object to be registered by disposal
+    * @param disposable The object to be registered for disposal
     * @tparam D The type of the disposable object
     * @return The disposable object
     */
@@ -35,6 +36,34 @@ trait Disposer extends Closeable {
   final def disposes[D: Disposable](disposable: D): D = {
     disposables.update(_ :+: disposable.asCloseable)
     disposable
+  }
+
+  /** Register an atomic reference to a disposable object for disposable by the disposer on close.
+    * The disposable object must have an instance of HasDisposed in order to produce a value that
+    * represents an already disposed resource that can be substituted into the reference.
+    *
+    * @param reference The reference containing the object to be registered for disposal
+    * @tparam D The type of the disposable object
+    * @return The disposable object
+    */
+  @inline
+  final def disposes[D: Disposable: EmptyReferent](reference: AtomicReference[D]): AtomicReference[D] = {
+    disposables.update(_ :+: OnClose(reference.release().dispose()))
+    reference
+  }
+
+  /** Register an atomic reference to a disposable object for disposable by the disposer on close.
+    * The disposable object must have an instance of HasDisposed in order to produce a value that
+    * represents an already disposed resource that can be substituted into the reference.
+    *
+    * @param reference The reference containing the object to be registered for disposal
+    * @tparam D The type of the disposable object
+    * @return The disposable object
+    */
+  @inline
+  final def releases[D: EmptyReferent](reference: AtomicReference[D]): AtomicReference[D] = {
+    disposables.update(_ :+: OnClose(reference.release()))
+    reference
   }
 
   /** Register a callback to be called by the disposer on close.

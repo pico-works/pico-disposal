@@ -13,7 +13,7 @@ Add this to your SBT project:
 ```
 resolvers += "dl-john-ky-releases" at "http://dl.john-ky.io/maven/releases"
 
-libraryDependencies += "org.pico" %%  "pico-disposal" % "0.4.0-7"
+libraryDependencies += "org.pico" %%  "pico-disposal" % "0.5.0-8"
 ```
 
 ## Using the dispose method instead of close methods to close resources
@@ -239,3 +239,19 @@ with a combination of the `OnClose` function and the `Disposer` type:
     
     val owner: Owner = ???
     owner.close() // "do something" will be called at this point
+
+### Disposer and AtomicReference
+The Disposer can swap and release a value referred to by an AtomicReference when it closes.
+
+    val disposer = Disposer()
+    val valueRef = disposer.swapReleases(0, new AtomicReference(100))
+    disposer.dispose()
+    valueRef.get() ==== 0
+
+The Disposer can also swap and dispose a disposable object referrred to by an AtomicReference
+when it closes.
+
+    val disposer = Disposer()
+    val closeableRef = disposer.swapDisposes(Closed, new AtomicReference(new FileOutputStream("file.txt")))
+    disposer.dispose() // The file is closed at this point
+    closeableRef.get() ==== Closed

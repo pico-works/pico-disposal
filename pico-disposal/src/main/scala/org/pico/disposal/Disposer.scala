@@ -3,7 +3,6 @@ package org.pico.disposal
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
-import org.pico.atomic.EmptyReferent
 import org.pico.atomic.syntax.std.atomicReference._
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
@@ -38,31 +37,32 @@ trait Disposer extends Closeable {
     disposable
   }
 
-  /** Register an atomic reference to a disposable object for disposable by the disposer on close.
-    * The disposable object must have an instance of HasDisposed in order to produce a value that
-    * represents an already disposed resource that can be substituted into the reference.
+  /** Register an atomic reference for disposal on close.  The value type of AtomicReference must
+    * be Disposable.  When the disposer is closed, the replacement value is swapped in and the
+    * swapped out disposable object is disposed.
     *
-    * @param reference The reference containing the object to be registered for disposal
+    * @param replacement The replacement value to use when swapping
+    * @param reference The reference to swap
     * @tparam D The type of the disposable object
     * @return The disposable object
     */
   @inline
-  final def disposes[D: Disposable: EmptyReferent](reference: AtomicReference[D]): AtomicReference[D] = {
-    disposables.update(_ :+: OnClose(reference.release().dispose()))
+  final def swapDisposes[D: Disposable](replacement: D, reference: AtomicReference[D]): AtomicReference[D] = {
+    disposables.update(_ :+: OnClose(reference.getAndSet(replacement).dispose()))
     reference
   }
 
-  /** Register an atomic reference to a disposable object for disposable by the disposer on close.
-    * The disposable object must have an instance of HasDisposed in order to produce a value that
-    * represents an already disposed resource that can be substituted into the reference.
+  /** Register an atomic reference for release on close.  When the disposer is closed, the
+    * replacement value is swapped in.
     *
-    * @param reference The reference containing the object to be registered for disposal
-    * @tparam D The type of the disposable object
+    * @param replacement The replacement value to use when swapping
+    * @param reference The reference to swap
+    * @tparam V The type of the value
     * @return The disposable object
     */
   @inline
-  final def releases[D: EmptyReferent](reference: AtomicReference[D]): AtomicReference[D] = {
-    disposables.update(_ :+: OnClose(reference.release()))
+  final def swapReleases[V](replacement: V, reference: AtomicReference[V]): AtomicReference[V] = {
+    disposables.update(_ :+: OnClose(reference.set(replacement)))
     reference
   }
 

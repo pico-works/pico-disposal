@@ -4,10 +4,8 @@ import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
 import org.pico.disposal.std.autoCloseable._
-import org.pico.disposal.std.closeable._
 import org.pico.disposal.syntax.disposable._
 import org.specs2.mutable.Specification
-import org.pico.atomic.syntax.std.atomicReference._
 
 class DisposerSpec extends Specification {
   "Disposer" should {
@@ -43,7 +41,7 @@ class DisposerSpec extends Specification {
     "be able to release AtomicReference[Closeable]" >> {
       var log = List.empty[String]
       val disposer = Disposer()
-      val reference = disposer.releases(new AtomicReference[Closeable](OnClose(log ::= "closed")))
+      val reference = disposer.swapReleases(Closed, new AtomicReference[Closeable](OnClose(log ::= "closed")))
       disposer.dispose()
       reference.get() ==== Closed
       log ==== List()
@@ -52,7 +50,7 @@ class DisposerSpec extends Specification {
     "be able to release AtomicReference[AutoCloseable]" >> {
       var log = List.empty[String]
       val disposer = Disposer()
-      val reference = disposer.releases(new AtomicReference[AutoCloseable](OnClose(log ::= "closed")))
+      val reference = disposer.swapReleases(Closed, new AtomicReference[AutoCloseable](OnClose(log ::= "closed")))
       disposer.dispose()
       reference.get() ==== Closed
       log ==== List()
@@ -61,7 +59,7 @@ class DisposerSpec extends Specification {
     "be able to dispose AtomicReference[Closeable]" >> {
       var log = List.empty[String]
       val disposer = Disposer()
-      val reference = disposer.disposes(new AtomicReference[Closeable](OnClose(log ::= "closed")))
+      val reference = disposer.swapDisposes(Closed, new AtomicReference[Closeable](OnClose(log ::= "closed")))
       disposer.dispose()
       reference.get() ==== Closed
       log ==== List("closed")
@@ -70,7 +68,7 @@ class DisposerSpec extends Specification {
     "be able to dispose AtomicReference[AutoCloseable]" >> {
       var log = List.empty[String]
       val disposer = Disposer()
-      val reference = disposer.disposes(new AtomicReference[AutoCloseable](OnClose(log ::= "closed")))
+      val reference = disposer.swapDisposes(Closed, new AtomicReference[AutoCloseable](OnClose(log ::= "closed")))
       disposer.dispose()
       reference.get() ==== Closed
       log ==== List("closed")

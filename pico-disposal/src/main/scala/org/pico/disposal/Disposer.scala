@@ -1,7 +1,7 @@
 package org.pico.disposal
 
 import java.io.Closeable
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong, AtomicReference}
 
 import org.pico.atomic.syntax.std.atomicReference._
 import org.pico.disposal.std.autoCloseable._
@@ -64,6 +64,59 @@ trait Disposer extends Closeable {
   final def swapReleases[V](replacement: V, reference: AtomicReference[V]): AtomicReference[V] = {
     disposables.update(_ :+: OnClose(reference.set(replacement)))
     reference
+  }
+
+  /** Register an atomic reference for reset on close.  When the disposer is closed, the
+    * replacement value is swapped in.
+    *
+    * @param replacement The replacement value to use when swapping
+    * @param reference The reference to swap
+    * @tparam V The type of the value
+    * @return The disposable object
+    */
+  @inline
+  final def resets[V](replacement: V, reference: AtomicReference[V]): AtomicReference[V] = {
+    disposables.update(_ :+: OnClose(reference.set(replacement)))
+    reference
+  }
+
+  /** Register an atomic boolean for reset on close.  When the disposer is closed, the
+    * replacement value is swapped in.
+    *
+    * @param replacement The replacement value to use when swapping
+    * @param atomicValue The atomic value to swap
+    * @return The disposable object
+    */
+  @inline
+  final def resets(replacement: Boolean, atomicValue: AtomicBoolean): AtomicBoolean = {
+    disposables.update(_ :+: OnClose(atomicValue.set(replacement)))
+    atomicValue
+  }
+
+  /** Register an atomic integer for reset on close.  When the disposer is closed, the
+    * replacement value is swapped in.
+    *
+    * @param replacement The replacement value to use when swapping
+    * @param atomicValue The atomic value to swap
+    * @return The disposable object
+    */
+  @inline
+  final def resets(replacement: Int, atomicValue: AtomicInteger): AtomicInteger = {
+    disposables.update(_ :+: OnClose(atomicValue.set(replacement)))
+    atomicValue
+  }
+
+  /** Register an atomic long for reset on close.  When the disposer is closed, the
+    * replacement value is swapped in.
+    *
+    * @param replacement The replacement value to use when swapping
+    * @param atomicValue The atomic value to swap
+    * @return The disposable object
+    */
+  @inline
+  final def resets(replacement: Long, atomicValue: AtomicLong): AtomicLong = {
+    disposables.update(_ :+: OnClose(atomicValue.set(replacement)))
+    atomicValue
   }
 
   /** Register a callback to be called by the disposer on close.

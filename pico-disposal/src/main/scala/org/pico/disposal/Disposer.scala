@@ -66,6 +66,21 @@ trait Disposer extends Closeable {
     reference
   }
 
+  /** Register an reference to keep until closed.
+    *
+    * @param reference The reference to keep
+    * @tparam V The type of the reference
+    * @return The disposable object
+    */
+  @inline
+  final def releases[V <: AnyRef](reference: V): V = {
+    this.disposes(new Closeable {
+      @volatile var ref: AnyRef = reference
+      override def close(): Unit = ref = null
+    })
+    reference
+  }
+
   /** Register an atomic reference for reset on close.  When the disposer is closed, the
     * replacement value is swapped in.
     *

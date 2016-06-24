@@ -13,6 +13,8 @@ import org.pico.disposal.syntax.disposable._
 import org.specs2.mutable.Specification
 
 class DisposerSpec extends Specification {
+  sequential
+
   "Disposer" should {
     "dispose in reverse order" >> {
       var value = 1

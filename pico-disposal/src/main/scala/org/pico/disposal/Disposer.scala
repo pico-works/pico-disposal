@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong, At
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
 
+import scala.util.control.NonFatal
+
 /** The Disposer disposes disposable objects that are registered with it when it is closed.
   *
   * The disposer is thread-safe, but will not prevent more disposable object from being registered
@@ -148,7 +150,7 @@ trait Disposer extends Closeable {
     try {
       disposes(disposable)
     } catch {
-      case e: Exception =>
+      case NonFatal(e) =>
         this.dispose()
         throw e
     }

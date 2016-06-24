@@ -2,7 +2,7 @@ import sbt.Keys._
 import sbt._
 
 object Build extends sbt.Build {  
-  val pico_atomic               = "org.pico"        %%  "pico-atomic"               % "0.2.0-7"
+  val pico_atomic               = "org.pico"        %%  "pico-atomic"               % "0.2.0-9"
 
   val specs2_core               = "org.specs2"      %%  "specs2-core"               % "3.7.2"
 

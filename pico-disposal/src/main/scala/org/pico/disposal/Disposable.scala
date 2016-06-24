@@ -2,6 +2,8 @@ package org.pico.disposal
 
 import java.io.Closeable
 
+import scala.util.control.NonFatal
+
 /** Type trait for objects that can be disposed.  An instance is provided for AutoCloseable.
   * Additional instances may be provided for types that are not Closeable, particularly those found
   * in third-party libraries.
@@ -15,11 +17,6 @@ trait Disposable[-A] {
     */
   protected def onDispose(a: A): Unit
 
-  /** If this returns true, the Disposable object is poisoned.  Attempts to compose it with another
-    * Disposable object with the ++ operator will cause the other object to be disposed.
-    */
-  def disposablePoisoned(a: A): Boolean = false
-
   /** Create a wrapper for the disposable object that implements Closeable.  Calling close on the
     * wrapper will directly call onDispose on the disposable object.  It does not call the dispose
     * method because the dispose method will silently catch non-fatal exceptions.  Callers may
@@ -30,7 +27,7 @@ trait Disposable[-A] {
     * @param a The disposable object
     * @return The Closeable wrapper
     */
-  def asCloseable(a: A): Closeable = new Closeable {
+  final def wrapInCloseable(a: A): Closeable = new Closeable {
     override def close(): Unit = onDispose(a)
   }
 
@@ -54,5 +51,5 @@ trait Disposable[-A] {
     * @param a The disposable object
     */
   @inline
-  final def dispose(a: A): Unit = try onDispose(a) catch { case e: Exception => }
+  final def dispose(a: A): Unit = try onDispose(a) catch { case NonFatal(e) => }
 }

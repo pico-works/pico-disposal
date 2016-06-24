@@ -5,17 +5,15 @@ import org.pico.disposal.syntax.disposable._
 import org.specs2.mutable.Specification
 
 class DisposableSpec extends Specification {
-  "Disposable" >> {
-    "when composed" should {
-      "dispose in reverse order" >> {
-        var value = 1
-        val disposable1 = OnClose(value += 1)
-        val disposable2 = OnClose(value *= 10)
+  "Disposable should" should {
+    "when composed dispose in reverse order" >> {
+      var value = 1
+      val disposable1 = OnClose(value += 1)
+      val disposable2 = OnClose(value *= 10)
 
-        (disposable1 :+: disposable2).dispose()
+      (disposable1 :+: disposable2).dispose()
 
-        value ==== 11
-      }
+      value ==== 11
     }
 
     "dispose in reverse order in nested for comprehension" >> {
@@ -38,6 +36,40 @@ class DisposableSpec extends Specification {
       }: String
 
       x ==== 11
+    }
+
+    "have asCloseable method" in {
+      Closed.asCloseable must_=== Closed
+    }
+
+    "have asCloseable method for not Closeable types" in {
+      var count = 0
+      class NewType()
+      implicit val disposable_NewType = new Disposable[NewType] {
+        override protected def onDispose(a: NewType): Unit = {
+          count += 1
+        }
+      }
+      val newType = new NewType()
+      newType.asAutoCloseable.dispose()
+      newType.asCloseable.close()
+      count must_=== 2
+    }
+
+    "have asAutoCloseable method" in {
+      Closed.asAutoCloseable must_=== Closed
+    }
+
+    "have dispose method that suppresses exception" in {
+      class NewType()
+      implicit val disposable_NewType = new Disposable[NewType] {
+        override protected def onDispose(a: NewType): Unit = {
+          throw new Exception()
+        }
+      }
+      val newType = new NewType()
+      newType.dispose()
+      ok
     }
   }
 }

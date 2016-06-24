@@ -24,10 +24,35 @@ package object disposable {
       * @return The Closeable wrapper
       */
     @inline
-    final def asCloseable(implicit ev: Disposable[A]): Closeable = ev.asCloseable(self)
+    final def wrapInCloseable(implicit ev: Disposable[A]): Closeable = ev.wrapInCloseable(self)
 
+    /** Get Closeable of the disposable, creating a Closeable wrapper if necessary.  Calling close
+      * on the wrapper will directly call onDispose on the disposable object.  It does not call
+      * the dispose method because the dispose method will silently catch non-fatal exceptions.
+      * Callers may choose this method instead of calling dispose to get access to any thrown
+      * exceptions.
+      *
+      * @param ev Evidence that A is disposable.
+      * @return The Closeable wrapper
+      */
     @inline
-    final def disposablePoisoned(implicit ev: Disposable[A]): Boolean = ev.disposablePoisoned(self)
+    final def asCloseable(implicit ev: Disposable[A]): Closeable = {
+      self.asAutoCloseable match {
+        case closeable: Closeable => closeable
+        case _                    => wrapInCloseable
+      }
+    }
+
+    /** Create a wrapper for the disposable object that implements AutoCloseable.  Calling close on
+      * the wrapper will directly call onDispose on the disposable object.  It does not call the
+      * dispose method because the dispose method will silently catch non-fatal exceptions.  Callers
+      * may choose this method instead of calling dispose to get access to any thrown exceptions.
+      *
+      * @param ev Evidence that A is disposable.
+      * @return The Closeable wrapper
+      */
+    @inline
+    final def asAutoCloseable(implicit ev: Disposable[A]): AutoCloseable = ev.asAutoCloseable(self)
 
     /** Compose two disposable objects into a single Closeable object that when closed will dispose
       * both disposable objects.

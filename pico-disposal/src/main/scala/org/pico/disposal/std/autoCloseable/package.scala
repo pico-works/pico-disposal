@@ -1,6 +1,6 @@
 package org.pico.disposal.std
 
-import org.pico.disposal.{Disposable, PoisonedCloseable}
+import org.pico.disposal.Disposable
 
 package object autoCloseable {
   /** Evidence that all AutoCloseable objects are disposable.  Disposal is implemented as calling
@@ -8,9 +8,6 @@ package object autoCloseable {
     */
   implicit val disposableAutoCloseable_YYKh2cf = new Disposable[AutoCloseable] {
     protected override def onDispose(a: AutoCloseable): Unit = a.close()
-
-    @inline
-    final override def disposablePoisoned(a: AutoCloseable): Boolean = a eq PoisonedCloseable
 
     @inline
     final override def asAutoCloseable(a: AutoCloseable): AutoCloseable = a

@@ -3,7 +3,6 @@ package org.pico.disposal
 import java.io.Closeable
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong, AtomicReference}
 
-import org.pico.atomic.syntax.std.atomicReference._
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
 
@@ -14,8 +13,6 @@ import org.pico.disposal.syntax.disposable._
   * close again.
   */
 trait Disposer extends Closeable {
-  private val disposables = new AtomicReference[Closeable](Closed)
-
   /** Register a disposable object for disposable by the disposer on close.
     *
     * @param disposable The object to be registered by disposal
@@ -25,17 +22,15 @@ trait Disposer extends Closeable {
   @inline
   final def +=[D: Disposable](disposable: D): D = disposes(disposable)
 
-  /** Register a disposable object for disposable by the disposer on close.
+  /** Register a disposable object for disposable by the disposer on close.  If the disposer is
+    * already closed, then the disposable object will also be closed upon return.
     *
     * @param disposable The object to be registered for disposal
     * @tparam D The type of the disposable object
     * @return The disposable object
     */
   @inline
-  final def disposes[D: Disposable](disposable: D): D = {
-    disposables.update(_ :+: disposable.asCloseable)
-    disposable
-  }
+  def disposes[D: Disposable](disposable: D): D
 
   /** Register an atomic reference for disposal on close.  The value type of AtomicReference must
     * be Disposable.  When the disposer is closed, the replacement value is swapped in and the
@@ -48,7 +43,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def swapDisposes[D: Disposable](replacement: D, reference: AtomicReference[D]): AtomicReference[D] = {
-    disposables.update(_ :+: OnClose(reference.getAndSet(replacement).dispose()))
+    this.disposes(OnClose(reference.getAndSet(replacement).dispose()))
     reference
   }
 
@@ -62,7 +57,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def swapReleases[V](replacement: V, reference: AtomicReference[V]): AtomicReference[V] = {
-    disposables.update(_ :+: OnClose(reference.set(replacement)))
+    this.disposes(OnClose(reference.set(replacement)))
     reference
   }
 
@@ -91,7 +86,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def resets[V](replacement: V, reference: AtomicReference[V]): AtomicReference[V] = {
-    disposables.update(_ :+: OnClose(reference.set(replacement)))
+    this.disposes(OnClose(reference.set(replacement)))
     reference
   }
 
@@ -104,7 +99,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def resets(replacement: Boolean, atomicValue: AtomicBoolean): AtomicBoolean = {
-    disposables.update(_ :+: OnClose(atomicValue.set(replacement)))
+    this.disposes(OnClose(atomicValue.set(replacement)))
     atomicValue
   }
 
@@ -117,7 +112,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def resets(replacement: Int, atomicValue: AtomicInteger): AtomicInteger = {
-    disposables.update(_ :+: OnClose(atomicValue.set(replacement)))
+    this.disposes(OnClose(atomicValue.set(replacement)))
     atomicValue
   }
 
@@ -130,7 +125,7 @@ trait Disposer extends Closeable {
     */
   @inline
   final def resets(replacement: Long, atomicValue: AtomicLong): AtomicLong = {
-    disposables.update(_ :+: OnClose(atomicValue.set(replacement)))
+    this.disposes(OnClose(atomicValue.set(replacement)))
     atomicValue
   }
 
@@ -158,14 +153,9 @@ trait Disposer extends Closeable {
         throw e
     }
   }
-
-  /** Dispose all registered disposable objects.
-    */
-  @inline
-  final override def close(): Unit = disposables.getAndSet(Closed).dispose()
 }
 
 object Disposer {
   @inline
-  final def apply(): Disposer = new Disposer {}
+  final def apply(): Disposer = new SimpleDisposer {}
 }

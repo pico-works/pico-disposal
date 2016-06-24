@@ -2,11 +2,15 @@ package org.pico.disposal
 
 import java.io.Closeable
 
-/** A singleton object that is an already closed closeable object.
+/** A Closeable object that is already closed upon creation.
   *
   * It would be used in place of null.  See null object pattern.
   */
-object Closed extends Closeable {
+trait Closed extends Closeable {
   @inline
   final override def close(): Unit = ()
 }
+
+/** A singleton Closed object.
+  */
+object Closed extends Closed

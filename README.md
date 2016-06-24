@@ -183,14 +183,15 @@ for (disposer <- Disposer()) {
 ```
 
 The `Disposer` is particularly useful in a class setting when a class may own several
-disposable objects:
+disposable objects.  In this case inherit from `SimpleDisposer` to enable a class to be able to
+take ownership of objects and manage their lifetimes:
 
 ```
 import org.pico.disposal._
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
 import java.io._
-class TwoFiles extends Disposer {
+class TwoFiles extends SimpleDisposer {
   val file1 = disposer.disposesOrClose(new FileOutputStream("file1.txt"))
   val file2 = disposer.disposesOrClose(new FileOutputStream("file2.txt"))
 }

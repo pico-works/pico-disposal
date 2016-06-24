@@ -3,7 +3,7 @@ package org.pico.disposal.syntax
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
-import org.pico.disposal.{Disposable, PoisonedCloseable}
+import org.pico.disposal.Disposable
 
 package object disposable {
   implicit class DisposableOps_YYKh2cf[A](val self: A) extends AnyVal {
@@ -39,19 +39,13 @@ package object disposable {
       * @return The closeable object that will dispose of both disposable objects when closed
       */
     def :+:[B](that: B)(implicit evA: Disposable[A], evB: Disposable[B]): Closeable = {
-      if (self.disposablePoisoned || that.disposablePoisoned) {
-        self.dispose()
-        that.dispose()
-        PoisonedCloseable
-      } else {
-        val disposableRefThat = new AtomicReference[B](that)
-        val disposableRefThis = new AtomicReference[A](self)
+      val disposableRefThat = new AtomicReference[B](that)
+      val disposableRefThis = new AtomicReference[A](self)
 
-        new Closeable {
-          override def close(): Unit = {
-            disposableRefThis.getAndSet(null.asInstanceOf[A]).dispose()
-            disposableRefThat.getAndSet(null.asInstanceOf[B]).dispose()
-          }
+      new Closeable {
+        override def close(): Unit = {
+          disposableRefThis.getAndSet(null.asInstanceOf[A]).dispose()
+          disposableRefThat.getAndSet(null.asInstanceOf[B]).dispose()
         }
       }
     }

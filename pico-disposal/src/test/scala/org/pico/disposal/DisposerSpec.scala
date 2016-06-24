@@ -20,24 +20,6 @@ class DisposerSpec extends Specification {
       value ==== 11
     }
 
-    "make it easier to handle resources safely in a class setting" >> {
-      var log = List.empty[String]
-
-      class TwoFiles extends Disposer {
-        val resource1 = this.disposesOrClose(OnClose(log ::= "resource 1 closed"))
-        val resource2 = this.disposesOrClose(throw new Exception("Oops"))
-        val resource3 = this.disposesOrClose(OnClose(log ::= "resource 3 closed"))
-      }
-
-      try {
-        new TwoFiles().dispose()
-      } catch {
-        case e: Exception =>
-      }
-
-      log ==== List("resource 1 closed")
-    }
-
     "be able to release AtomicReference[Closeable]" >> {
       var log = List.empty[String]
       val disposer = Disposer()

@@ -13,7 +13,7 @@ Add this to your SBT project:
 ```
 resolvers += "dl-john-ky-releases" at "http://dl.john-ky.io/maven/releases"
 
-libraryDependencies += "org.pico" %%  "pico-disposal" % "0.6.0-17"
+libraryDependencies += "org.pico" %%  "pico-disposal" % "0.6.0"
 ```
 
 ## Using the dispose method instead of close methods to close resources

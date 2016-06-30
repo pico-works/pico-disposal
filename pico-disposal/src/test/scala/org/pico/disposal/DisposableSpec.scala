@@ -45,11 +45,7 @@ class DisposableSpec extends Specification {
     "have asCloseable method for not Closeable types" in {
       var count = 0
       class NewType()
-      implicit val disposable_NewType = new Disposable[NewType] {
-        override protected def onDispose(a: NewType): Unit = {
-          count += 1
-        }
-      }
+      implicit val disposable_NewType = Disposable[NewType](_ => count += 1)
       val newType = new NewType()
       newType.asAutoCloseable.dispose()
       newType.asCloseable.close()
@@ -62,11 +58,7 @@ class DisposableSpec extends Specification {
 
     "have dispose method that suppresses exception" in {
       class NewType()
-      implicit val disposable_NewType = new Disposable[NewType] {
-        override protected def onDispose(a: NewType): Unit = {
-          throw new Exception()
-        }
-      }
+      implicit val disposable_NewType = Disposable[NewType](_ => throw new Exception())
       val newType = new NewType()
       newType.dispose()
       ok

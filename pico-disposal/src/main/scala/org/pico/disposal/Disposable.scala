@@ -53,3 +53,17 @@ trait Disposable[-A] {
   @inline
   final def dispose(a: A): Unit = try onDispose(a) catch { case NonFatal(e) => }
 }
+
+object Disposable {
+  /** Use the performDispose side-effecting function to implement Disposable for the given type A.
+    *
+    * @param performDispose The side-effecting function that performs the dispose operation on type A
+    * @tparam A The type of the disposable
+    * @return A Disposable instance for type A
+    */
+  def apply[A](performDispose: A => Unit): Disposable[A] = {
+    new Disposable[A] {
+      override protected def onDispose(a: A): Unit = performDispose(a)
+    }
+  }
+}

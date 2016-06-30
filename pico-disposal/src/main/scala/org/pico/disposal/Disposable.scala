@@ -61,7 +61,8 @@ object Disposable {
     * @tparam A The type of the disposable
     * @return A Disposable instance for type A
     */
-  def apply[A](performDispose: A => Unit): Disposable[A] = {
+  @inline
+  final def apply[A](performDispose: A => Unit): Disposable[A] = {
     new Disposable[A] {
       override protected def onDispose(a: A): Unit = performDispose(a)
     }

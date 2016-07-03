@@ -10,7 +10,14 @@ import org.pico.atomic.syntax.std.atomicLong._
 import org.pico.atomic.syntax.std.atomicReference._
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
+import org.specs2.execute.Result
 import org.specs2.mutable.Specification
+import org.specs2.specification.AroundExample
+import org.specs2.time.TimeConversions
+import org.specs2.specification. AroundExample
+import org.specs2.execute.{ EventuallyResults, Result }
+import EventuallyResults._
+import scala.concurrent.duration._
 
 class DisposerSpec extends Specification {
   sequential
@@ -142,7 +149,7 @@ class DisposerSpec extends Specification {
         weakRef.get() must not be null
         disposer.close()
         System.gc()
-        weakRef.get() must_=== null
+        weakRef.get() must be_==(null).eventually(1, 100.millis)
       }
     }
   }

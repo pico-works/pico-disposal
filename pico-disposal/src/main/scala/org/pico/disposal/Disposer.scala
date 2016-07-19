@@ -22,7 +22,7 @@ trait Disposer extends Closeable {
     * @return The disposable object
     */
   @inline
-  final def +=[D: Disposable](disposable: D): D = disposes(disposable)
+  final def +=[D: Disposable](disposable: D): Unit = disposes(disposable)
 
   /** Register a disposable object for disposable by the disposer on close.  If the disposer is
     * already closed, then the disposable object will also be closed upon return.

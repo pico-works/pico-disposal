@@ -90,7 +90,7 @@ package object disposable {
       * @tparam B The return type of the callback
       * @return The return type of the callback
       */
-    @inline
+    @inline @deprecated("Use Auto instead", "1.0.5")
     final def foreach[B](f: A => B)(implicit ev: Disposable[A]): B = {
       try {
         f(self)

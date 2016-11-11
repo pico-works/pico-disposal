@@ -1,5 +1,6 @@
 import sbt.Keys._
 import sbt._
+import tut.Plugin.tutSettings
 
 object Build extends sbt.Build {  
   val pico_atomic               = "org.pico"        %%  "pico-atomic"               % "0.2.2"
@@ -13,6 +14,7 @@ object Build extends sbt.Build {
           .settings(publishTo := Some("Releases" at "s3://dl.john-ky.io/maven/releases"))
           .settings(description := theDescription)
           .settings(isSnapshot := true)
+          .settings(tutSettings: _*)
     }
 
     def notPublished = self.settings(publish := {}).settings(publishArtifact := false)

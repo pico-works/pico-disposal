@@ -10,4 +10,6 @@ case class Auto[A](resource: A) extends AnyVal {
       resource.dispose()
     }
   }
+
+  def filter(a: A => Boolean): Auto[A] = this
 }

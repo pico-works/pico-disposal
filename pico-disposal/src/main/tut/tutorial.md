@@ -2,7 +2,9 @@
 ## Using the dispose method instead of close methods to close resources
 In order to dispose a resource, call the `dispose` method on the resource:
 
-    resource.dispose()
+```tut:reset
+resource.dispose()
+```
 
 ## How is Disposable different from Closeable and AutoCloseable?
 The dispose pattern is different from `Closeable` and `AutoCloseable` in a number of ways:

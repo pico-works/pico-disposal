@@ -2,7 +2,7 @@
 ## Using the dispose method instead of close methods to close resources
 In order to dispose a resource, call the `dispose` method on the resource:
 
-```tut:reset
+```scala
 resource.dispose()
 ```
 

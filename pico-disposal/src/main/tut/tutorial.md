@@ -249,7 +249,7 @@ to it.
 
 Do bear in mind, this will only ensure proper cleanup of resources if exceptions are never thrown
 from within the constructor body outsided of the `disposesOrCloses` by-name parameter.  For a safer
-way of constructing complex resources see [Constructing complex resources safely](# Constructing complex resources safely)
+way of constructing complex resources see [Constructing complex resources safely](#Constructing complex resources safely)
 
 ## Other features
 ### Closed object
@@ -335,13 +335,13 @@ assert(closeableRef.get() == Closed)
 
 Use `Part` in a for comprehension to safely construct composite resources:
 
-```tut
+```tut:reset
 import java.io.Closeable
 
+import org.pico.disposal._
 import org.pico.disposal.std.autoCloseable._
+import org.pico.disposal.syntax.disposable._
 import org.specs2.mutable.Specification
-
-import scala.util.control.NonFatal
 
 class Resource extends Closeable {
   override def close(): Unit = ()
@@ -365,3 +365,33 @@ val composite: Composite = {
   } yield Composite(a, a, a)
 }
 ```
+
+### Tuples of disposables
+
+In situations when a function needs to return two disposable objects, it is possible to acquire them safely
+using tuple support:
+
+```tut:reset
+import java.io.Closeable
+
+import org.pico.disposal._
+import org.pico.disposal.std.autoCloseable._
+import org.pico.disposal.std.tuple._
+import org.specs2.mutable.Specification
+
+var value: Int = 0
+
+def createTwoResources(): (Closeable, Closeable) = {
+  (OnClose(value += 1), OnClose(value += 2))
+}
+
+for {
+  (a, b) <- Auto(createTwoResources())
+} {
+  identity(a: Closeable)
+  identity(b: Closeable)
+}
+
+assert(value == 3)
+```
+

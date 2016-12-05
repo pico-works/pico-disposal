@@ -14,7 +14,7 @@ Add this to your SBT project:
 ```
 resolvers += "dl-john-ky-releases" at "http://dl.john-ky.io/maven/releases"
 
-libraryDependencies += "org.pico" %%  "pico-disposal" % "1.0.9"
+libraryDependencies += "org.pico" %%  "pico-disposal" % "1.0.10"
 ```
 
 Then read the [tutorial](pico-disposal/src/main/tut/tutorial.md).

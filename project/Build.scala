@@ -11,7 +11,7 @@ object Build extends sbt.Build {
     def standard(theDescription: String) = {
       self
           .settings(scalacOptions in Test ++= Seq("-Yrangepos"))
-          .settings(publishTo := Some("Releases" at "s3://dl.john-ky.io/maven/releases"))
+          .settings(publishTo := Some("Releases" at Option(System.getenv("PICO_PUBLISH_TO")).getOrElse("no-publishing")))
           .settings(description := theDescription)
           .settings(isSnapshot := true)
           .settings(tutSettings: _*)

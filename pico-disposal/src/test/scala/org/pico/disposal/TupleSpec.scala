@@ -14,7 +14,7 @@ class TupleSpec extends Specification {
       (a, b) <- Auto((OnClose(value += 1), OnClose(value += 2)))
     } {
       identity(a: Closeable)
-      identity(a: Closeable)
+      identity(b: Closeable)
     }
 
     value must_=== 3

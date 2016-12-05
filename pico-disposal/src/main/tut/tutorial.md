@@ -11,7 +11,7 @@ The dispose pattern is different from `Closeable` and `AutoCloseable` in a numbe
 
 The `Disposable` pattern:
 
-* means objects may be disposed without risk of thrown exceptions
+* means objects may be disposed at a scope level regardless of whether exceptions are thrown
 * can be made to work on arbitrary types
 * can be composed
 * provides `for` syntax support for automatic disposal
@@ -74,6 +74,18 @@ implicit val disposableShutdownable_F8mA7jE = new Disposable[Shutdownable] {
 
 val shutdownable = Shutdownable()
 shutdownable.dispose()
+```
+
+A short-hand for constructing a `Disposable` instance is also available:
+
+```tut:reset
+import org.pico.disposal._
+
+case class Shutdownable() {
+  def shutdown(): Unit = ()
+}
+
+implicit val disposableShutdownable_F8mA7jE = Disposable[Shutdownable](_.shutdown())
 ```
 
 ### Composition of disposable objects
@@ -143,12 +155,13 @@ This library provides a convenient alternative syntax that does the work for you
 the following example shows:
 
 ```tut:reset
+import org.pico.disposal.Auto
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
 import java.io._
 
-for (file1 <- new FileOutputStream("target/file1.txt")) {
-  for (file2 <- new FileOutputStream("target/file2.txt")) {
+for (file1 <- Auto(new FileOutputStream("target/file1.txt"))) {
+  for (file2 <- Auto(new FileOutputStream("target/file2.txt"))) {
     // Do work
   } // file2 disposed in reverse order here
 } // file1 disposed in reverse order here
@@ -157,12 +170,35 @@ for (file1 <- new FileOutputStream("target/file1.txt")) {
 Or the more concise version:
 
 ```tut:reset
+import org.pico.disposal.Auto
 import org.pico.disposal.std.autoCloseable._
 import org.pico.disposal.syntax.disposable._
 import java.io._
 
-for (file1 <- new FileOutputStream("target/file1.txt");
-     file2 <- new FileOutputStream("target/file2.txt")) {
+for {
+  file1 <- Auto(new FileOutputStream("target/file1.txt"))
+  file2 <- Auto(new FileOutputStream("target/file2.txt"))
+} {
+  // Do work
+} // Both files disposed in reverse order here
+```
+
+Sometimes, there is a need to call some function and store their non-disposable results between allocations
+of resources.  This can be done with the `Eval` constructor:
+
+```tut:reset
+import org.pico.disposal.Auto
+import org.pico.disposal.Eval
+import org.pico.disposal.std.autoCloseable._
+import org.pico.disposal.syntax.disposable._
+import java.io._
+
+for {
+  file1           <- Auto(new FileOutputStream("target/file1.txt"))
+  fileDescriptor1 <- Eval(file1.getFD)
+  file2           <- Auto(new FileOutputStream("target/file2.txt"))
+  fileDescriptor2 <- Eval(file1.getFD)
+} {
   // Do work
 } // Both files disposed in reverse order here
 ```
@@ -210,6 +246,10 @@ order as normal.  If, however, the opening of `file2.txt` throws an exception, t
 not closing `file1.txt`.  The use of `disposesOrClose` in the above example avoids this problem
 by closing the disposer in the event of an exception, which in turn disposes anything registered
 to it.
+
+Do bear in mind, this will only ensure proper cleanup of resources if exceptions are never thrown
+from within the constructor body outsided of the `disposesOrCloses` by-name parameter.  For a safer
+way of constructing complex resources see [Constructing complex resources safely](# Constructing complex resources safely)
 
 ## Other features
 ### Closed object

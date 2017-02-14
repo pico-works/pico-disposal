@@ -7,11 +7,13 @@ object Build extends sbt.Build {
 
   val specs2_core               = "org.specs2"      %%  "specs2-core"               % "3.8.6"
 
+  def env(name: String): Option[String] = Option(System.getenv(name))
+
   implicit class ProjectOps(self: Project) {
     def standard(theDescription: String) = {
       self
           .settings(scalacOptions in Test ++= Seq("-Yrangepos"))
-          .settings(publishTo := Some("Releases" at Option(System.getenv("PICO_PUBLISH_TO")).getOrElse("no-publishing")))
+          .settings(publishTo := env("PICO_PUBLISH_TO").map("Releases" at _))
           .settings(description := theDescription)
           .settings(isSnapshot := true)
           .settings(tutSettings: _*)

@@ -152,28 +152,5 @@ class DisposerSpec extends Specification {
         weakRef.get() must be_==(null).eventually(1, 100.millis)
       }
     }
-
-    "continue disposing in event of exception" in {
-      case class Exception1() extends Exception
-      case class Exception2() extends Exception
-
-      val disposer = Disposer()
-
-      var accumulator = List.empty[Int]
-
-      disposer.disposes(OnClose {
-        accumulator ::= 1
-        throw Exception1()
-      })
-
-      disposer.disposes(OnClose {
-        accumulator ::= 2
-        throw Exception2()
-      })
-
-      disposer.dispose() must throwA[FailedDisposeException]
-
-      accumulator.reverse ==== List(2, 1)
-    }
   }
 }

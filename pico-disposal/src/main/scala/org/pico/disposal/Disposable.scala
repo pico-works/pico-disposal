@@ -2,6 +2,8 @@ package org.pico.disposal
 
 import java.io.Closeable
 
+import scala.util.control.NonFatal
+
 /** Type trait for objects that can be disposed.  An instance is provided for AutoCloseable.
   * Additional instances may be provided for types that are not Closeable, particularly those found
   * in third-party libraries.
@@ -49,7 +51,7 @@ trait Disposable[-A] {
     * @param a The disposable object
     */
   @inline
-  final def dispose(a: A): Unit = onDispose(a)
+  final def dispose(a: A): Unit = try onDispose(a) catch { case NonFatal(e) => }
 }
 
 object Disposable {

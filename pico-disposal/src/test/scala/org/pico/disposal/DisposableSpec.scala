@@ -56,11 +56,11 @@ class DisposableSpec extends Specification {
       Closed.asAutoCloseable must_=== Closed
     }
 
-    "have dispose method that does not suppress exception" in {
+    "have dispose method that suppresses exception" in {
       class NewType()
       implicit val disposable_NewType = Disposable[NewType](_ => throw new Exception())
       val newType = new NewType()
-      newType.dispose() must throwA[Exception]
+      newType.dispose()
       ok
     }
   }

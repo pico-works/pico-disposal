@@ -51,7 +51,7 @@ trait Disposable[-A] {
     * @param a The disposable object
     */
   @inline
-  final def dispose(a: A): Unit = try onDispose(a) catch { case NonFatal(e) => }
+  final def dispose(a: A): Unit = onDispose(a)
 }
 
 object Disposable {

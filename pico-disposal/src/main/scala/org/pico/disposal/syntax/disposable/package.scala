@@ -3,33 +3,33 @@ package org.pico.disposal.syntax
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
-import org.pico.disposal.{Disposable, FailedDisposeException, SilencedExceptions}
+import org.pico.disposal.{Disposable, SilencedExceptions}
 
 import scala.util.control.NonFatal
 
 package object disposable {
   implicit class DisposableOps_YYKh2cf[A](val self: A) extends AnyVal {
-    /** Dispose the disposable object.  Any non-fatal exceptions that might be thrown during this process
-      * will be caught and a FailedDisposeException will be thrown in their replace.
-      *
-      * @param ev Evidence that A is disposable.
-      */
-    @inline
-    final def dispose()(implicit ev: Disposable[A]): Unit = ev.dispose(self)
-
     /** Dispose the disposable object.  Any exceptions that might be thrown during this process
       * will be caught and silently ignored.
       *
       * @param ev Evidence that A is disposable.
       */
     @inline
-    final def disposeSilently()(implicit ev: Disposable[A]): Unit = {
+    final def dispose()(implicit ev: Disposable[A]): Unit = {
       try {
-        self.dispose()
+        ev.dispose(self)
       } catch {
         case NonFatal(e) => SilencedExceptions.publish(e)
       }
     }
+
+    /** Dispose the disposable object allowing any exceptions that might be thrown during this process to
+      * propagate.
+      *
+      * @param ev Evidence that A is disposable.
+      */
+    @inline
+    final def disposeOrFail()(implicit ev: Disposable[A]): Unit = ev.dispose(self)
 
     /** Create a wrapper for the disposable object that implements Closeable.  Calling close on the
       * wrapper will directly call onDispose on the disposable object.  It does not call the dispose
@@ -85,31 +85,8 @@ package object disposable {
 
       new Closeable {
         override def close(): Unit = {
-          var throwables = List.empty[Throwable]
-
-          try {
-            val resource = disposableRefThis.getAndSet(null.asInstanceOf[A])
-
-            if (resource != null) {
-              resource.dispose()
-            }
-          } catch {
-            case NonFatal(e) => throwables ::= e
-          }
-
-          try {
-            val resource = disposableRefThat.getAndSet(null.asInstanceOf[B])
-
-            if (resource != null) {
-              resource.dispose()
-            }
-          } catch {
-            case NonFatal(e) => throwables ::= e
-          }
-
-          if (throwables.nonEmpty) {
-            throw new FailedDisposeException("Dispose failed", throwables)
-          }
+          disposableRefThis.getAndSet(null.asInstanceOf[A]).dispose()
+          disposableRefThat.getAndSet(null.asInstanceOf[B]).dispose()
         }
       }
     }

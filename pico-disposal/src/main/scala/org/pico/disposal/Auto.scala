@@ -14,4 +14,6 @@ case class Auto[A](resource: A) extends AnyVal {
   def filter(a: A => Boolean): Auto[A] = this
 
   def withFilter(a: A => Boolean): Auto[A] = this
+
+  def orFail: AutoOrFail[A] = AutoOrFail(resource)
 }

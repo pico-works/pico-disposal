@@ -28,12 +28,7 @@ import org.pico.disposal.syntax.disposable._
 import org.pico.disposal.std.autoCloseable._
 
 val closeable = OnClose(throw new Exception())
-closeable.disposeSilently() // does not throw
-try {
-    closeable.dispose() // throws
-} catch {
-  case e: Exception => println("Exception thrown")
-}
+closeable.dispose() // does not throw
 try {
     closeable.close() // throws
 } catch {

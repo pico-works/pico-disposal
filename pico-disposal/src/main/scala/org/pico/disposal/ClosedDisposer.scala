@@ -1,5 +1,7 @@
 package org.pico.disposal
 
+import java.io.Closeable
+
 import org.pico.disposal.syntax.disposable._
 
 /** A Disposer object that is already closed upon creation.  As a result of being already closed,
@@ -9,7 +11,7 @@ import org.pico.disposal.syntax.disposable._
   */
 trait ClosedDisposer extends Disposer with Closed {
   @inline
-  final def release(): Unit = ()
+  final def release(): Closeable = Closed
 
   override def disposes[D: Disposable](disposable: D): D = {
     disposable.dispose()

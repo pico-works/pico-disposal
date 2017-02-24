@@ -164,4 +164,6 @@ trait Disposer extends Closeable {
 object Disposer {
   @inline
   final def apply(): Disposer = new SimpleDisposer {}
+
+  implicit val releasable_Disposer_txc7PWb = Releasable[Disposer](_.release())
 }

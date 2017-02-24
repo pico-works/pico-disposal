@@ -16,7 +16,7 @@ trait SimpleDisposer extends Disposer {
   private val disposables = new AtomicReference[Closeable](Closed)
 
   @inline
-  final def release(): Unit = disposables.set(Closed)
+  final override def release(): Closeable = disposables.getAndSet(Closed)
 
   @inline
   final override def disposes[D: Disposable](disposable: D): D = {

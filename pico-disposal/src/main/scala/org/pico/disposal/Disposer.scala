@@ -17,7 +17,7 @@ import scala.util.control.NonFatal
 trait Disposer extends Closeable {
   /** Release all disposable objects that have been registered for disposal without disposing them.
     */
-  def release(): Unit
+  def release(): Closeable
 
   /** Register a disposable object for disposable by the disposer on close.
     *

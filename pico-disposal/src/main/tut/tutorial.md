@@ -15,7 +15,7 @@ The `Disposable` pattern:
 * can be made to work on arbitrary types
 * can be composed
 * provides `for` syntax support for automatic disposal
-* allows disposal to generically delegated to another object
+* allows disposal to be generically delegated to another object via ownership
 
 ### Treatment of exceptions
 The `dispose` method will silently catch and ignore all exceptions.  Often this is what you
@@ -35,6 +35,19 @@ try {
   case e: Exception => println("Exception thrown")
 }
 ```
+
+The one downside to this is that important errors indicating software bugs will be suppressed
+as well.  If this is a concern, it is possible to register a callback to receive all exceptions
+that have been suppressed and handle them in some way such as logging.
+
+```tut:reset
+import org.pico.disposal._
+
+SilencedExceptions.subscribe(println)
+```
+
+Once registered, the callback cannot be de-registered and multiple registrations are
+cummulative.
 
 ### Working on arbitrary types
 Sometimes, third-party libraries will make the arbitrary choice not to implement
@@ -366,6 +379,69 @@ val composite: Composite = {
 }
 ```
 
+Alternatively, use `Construct` to maintain exception safety when constructing
+sub-resources.
+
+`Construct` takes a function with a `Disposer` as an argument and returns
+the composite resource.  The composite resource must be disposable itself.
+
+Use the disposer provided as the argument to own all sub-resources as they
+are constructed.  If an exception is thrown, all registered resources are
+disposed.
+
+If the function returns successfully, ownership of all resources registered
+to the provided disposer is transferred to the returned resource.
+
+```tut:reset
+import java.io.Closeable
+
+import org.pico.disposal._
+import org.pico.disposal.std.autoCloseable._
+import org.pico.disposal.syntax.disposable._
+
+class Resource(
+    construct: () => Unit,
+    action: () => Unit,
+    destruct: () => Unit) extends Closeable {
+  construct()
+
+  def use(): Unit = action()
+
+  override def close(): Unit = destruct()
+}
+
+object Resource {
+  def apply(construct: => Unit, action: => Unit, destruct: => Unit): Resource = {
+    new Resource(() => construct, () => action, () => destruct)
+  }
+}
+
+case class Composite(resource1: Resource, resource2: Resource) extends SimpleDisposer {
+  def use(): Unit = {
+    resource1.use()
+    resource2.use()
+  }
+}
+
+var log = List.empty[String]
+
+def mkComposite = Construct { constructor =>
+  val resource1 = constructor.disposes(Resource(log ::= "construct 1", log ::= "use 1", log ::= "destruct 1"))
+  val resource2 = constructor.disposes(Resource(log ::= "construct 2", log ::= "use 2", log ::= "destruct 2"))
+
+  Composite(resource1, resource2)
+}
+
+for (composite <- Auto(mkComposite)) {
+  assert(log.reverse == List("construct 1", "construct 2"))
+  composite.use()
+  assert(log.reverse == List("construct 1", "construct 2", "use 1", "use 2"))
+}
+
+assert(log.reverse == List("construct 1", "construct 2", "use 1", "use 2", "destruct 2", "destruct 1"))
+
+```
+
 ### Tuples of disposables
 
 In situations when a function needs to return two disposable objects, it is possible to acquire them safely
@@ -395,3 +471,28 @@ for {
 assert(value == 3)
 ```
 
+### Eternally closed singleton objects
+Sometimes an API demands some kind of resource but you would like to not provide one.
+
+For example if a function demands an `OutputStream`:
+
+```
+def dumpTo(out: OutputStream): Unit = ???
+```
+
+Under such circumstances, a closed singleton object can be provided:
+
+```
+dumpTo(ClosedOutputStream)
+```
+
+This is called the null object pattern and is similar in concept to `/dev/null` on
+Linux systems.
+
+Currently the following closed singleton objects are available:
+
+* `ClosedInputStream`
+* `ClosedOutputStream`
+* `ClosedPrintWriter`
+* `ClosedReader`
+* `ClosedWriter`

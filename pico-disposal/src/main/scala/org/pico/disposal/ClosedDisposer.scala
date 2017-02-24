@@ -8,6 +8,9 @@ import org.pico.disposal.syntax.disposable._
   * It would be used in place of null.  See null object pattern.
   */
 trait ClosedDisposer extends Disposer with Closed {
+  @inline
+  final def release(): Unit = ()
+
   override def disposes[D: Disposable](disposable: D): D = {
     disposable.dispose()
     disposable
